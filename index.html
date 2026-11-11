@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>팝앤킵 Pop&amp;Keep</title>
+<meta name="description" content="인스타에서 본 팝업, 예약 마감까지 놓치지 않게. 링크만 붙여 넣으면 D-day로 알려 주는 팝업 일정 보관함.">
+<meta property="og:title" content="팝앤킵 Pop&amp;Keep">
+<meta property="og:description" content="인스타에서 본 팝업, 예약 마감까지 놓치지 않게.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#FFF4EC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="팝앤킵">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 6c15 0 26 11 26 27 0 14-11 25-26 25S6 47 6 33C6 17 17 6 32 6z' fill='%23FF8FB1' stroke='%233B2F3A' stroke-width='4'/%3E%3Ccircle cx='24' cy='32' r='3.5' fill='%233B2F3A'/%3E%3Ccircle cx='40' cy='32' r='3.5' fill='%233B2F3A'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --bg:#FFF4EC; --card:#FFFFFF; --ink:#3B2F3A; --sub:#8A7A86; --line:#3B2F3A;
+  --pink:#FF8FB1; --pink-soft:#FFE1EA; --lilac:#C9B8FF; --lilac-soft:#EEE8FF;
+  --mint:#8EDDC8; --mint-soft:#DDF6EF; --butter:#FFE08A; --butter-soft:#FFF4CC;
+  --red:#F0476B; --radius:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.app{max-width:440px;margin:0 auto;padding:0 16px calc(120px + env(safe-area-inset-bottom));position:relative}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 2px 8px}
+.logo{display:flex;align-items:baseline;gap:8px}
+.logo b{font-size:22px;font-weight:900;letter-spacing:-.5px}
+.logo b i{font-style:normal;color:var(--pink)}
+.logo span{font-size:13px;color:var(--sub);font-weight:600}
+.icon-btn{width:40px;height:40px;border-radius:14px;border:2px solid var(--line);background:#fff;display:grid;place-items:center;box-shadow:2px 2px 0 var(--line)}
+.icon-btn:active{transform:translate(2px,2px);box-shadow:none}
+
+/* hero */
+.hero{display:flex;gap:12px;align-items:center;margin:8px 0 18px}
+.hero svg{flex:none}
+.bubble{position:relative;background:#fff;border:2px solid var(--line);border-radius:18px;padding:12px 14px;font-size:15px;font-weight:700;line-height:1.4;box-shadow:3px 3px 0 var(--line)}
+.bubble small{display:block;font-weight:500;color:var(--sub);font-size:13px;margin-top:2px}
+.bubble:before{content:"";position:absolute;left:-9px;top:50%;width:14px;height:14px;background:#fff;border-left:2px solid var(--line);border-bottom:2px solid var(--line);transform:translateY(-50%) rotate(45deg)}
+.mascot{animation:boing 2.8s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes boing{0%,100%{transform:scale(1,1)}45%{transform:scale(1.04,.95)}55%{transform:scale(.97,1.04)}}
+
+/* tabs */
+.tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:9px 14px;border-radius:999px;border:2px solid var(--line);background:#fff;font-weight:700;font-size:14px}
+.tab[aria-selected="true"]{background:var(--ink);color:#fff}
+.tab .n{margin-left:4px;opacity:.6;font-weight:600}
+
+/* cards */
+.list{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:var(--radius);box-shadow:4px 4px 0 var(--line);padding:16px;position:relative}
+.card.urgent{background:linear-gradient(180deg,#FFF0F4 0,#fff 70%)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chip{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;border:1.5px solid var(--line);background:var(--lilac-soft)}
+.chip.b-산리오{background:var(--pink-soft)} .chip.b-팝마트{background:var(--butter-soft)}
+.chip.b-디즈니{background:#E3F0FF} .chip.b-지브리{background:var(--mint-soft)}
+.title{font-size:18px;font-weight:800;line-height:1.35;word-break:keep-all}
+.place{font-size:13px;color:var(--sub);margin-top:4px}
+.dday{flex:none;text-align:center;min-width:72px;padding:8px 8px 7px;border-radius:16px;border:2px solid var(--line);background:var(--butter)}
+.dday b{display:block;font-size:20px;font-weight:900;letter-spacing:-.5px;line-height:1.1}
+.dday span{display:block;font-size:11px;font-weight:700;margin-top:2px}
+.dday.hot{background:var(--red);color:#fff}
+.dday.live{background:var(--mint)}
+.dday.none{background:var(--lilac-soft)}
+.dday.done{background:#EFE9EC;color:var(--sub)}
+.dates{margin:12px 0 0;padding:10px 12px;border-radius:14px;background:#FBF7F4;display:grid;gap:5px;font-size:13px}
+.dates div{display:flex;justify-content:space-between;gap:8px}
+.dates dt{color:var(--sub)}
+.dates dd{font-weight:600;text-align:right}
+.dates .past dd{color:var(--sub);text-decoration:line-through}
+.dates .next dd{color:var(--red);font-weight:800}
+.memo{margin-top:10px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn{padding:9px 12px;border-radius:12px;border:2px solid var(--line);background:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:var(--ink)}
+.btn:active{transform:translate(1px,1px)}
+.btn.pink{background:var(--pink)} .btn.mint{background:var(--mint)} .btn.ghost{border-color:transparent;background:transparent;color:var(--sub);margin-left:auto}
+
+/* empty */
+.empty{text-align:center;padding:30px 10px 10px}
+.empty p{font-weight:700;font-size:16px;margin-top:12px;line-height:1.5}
+.empty small{display:block;color:var(--sub);font-weight:500;font-size:14px;margin-top:6px}
+.empty .btn{margin-top:16px}
+
+/* fab */
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom));z-index:20;display:flex;align-items:center;gap:8px;padding:15px 22px;border-radius:999px;background:var(--pink);border:2px solid var(--line);box-shadow:3px 4px 0 var(--line);font-weight:800;font-size:16px}
+.fab:active{transform:translate(calc(-50% + 2px),2px);box-shadow:1px 2px 0 var(--line)}
+
+/* sheet */
+.dim{position:fixed;inset:0;background:rgba(59,47,58,.4);z-index:30;opacity:0;pointer-events:none;transition:opacity .2s}
+.dim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:31;max-width:440px;margin:0 auto;background:var(--bg);border:2px solid var(--line);border-bottom:0;border-radius:26px 26px 0 0;max-height:92vh;overflow-y:auto;transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.9,.3,1.1);padding:10px 18px calc(24px + env(safe-area-inset-bottom))}
+.sheet.on{transform:none}
+.grab{width:44px;height:5px;border-radius:9px;background:#D9CBD3;margin:0 auto 12px}
+.sheet h2{font-size:20px;font-weight:900;margin-bottom:4px}
+.sheet .lead{color:var(--sub);font-size:14px;margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:800;margin-bottom:6px}
+.field label em{font-style:normal;color:var(--sub);font-weight:500;margin-left:4px}
+.input{width:100%;padding:12px 13px;border-radius:14px;border:2px solid var(--line);background:#fff;font-size:15px;outline:none}
+.input:focus{box-shadow:3px 3px 0 var(--pink)}
+textarea.input{min-height:76px;resize:vertical;line-height:1.45}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.brands{display:flex;flex-wrap:wrap;gap:6px}
+.brands input{position:absolute;opacity:0;pointer-events:none}
+.brands label{margin:0;padding:8px 12px;border-radius:999px;border:2px solid var(--line);background:#fff;font-size:13px;font-weight:700;cursor:pointer}
+.brands input:checked + label{background:var(--ink);color:#fff}
+.magic{background:var(--lilac-soft);border:2px dashed var(--line);border-radius:18px;padding:12px;margin-bottom:16px}
+.magic .btn{margin-top:8px;background:var(--lilac)}
+.magic-msg{font-size:13px;margin-top:8px;font-weight:600;line-height:1.45}
+.date-grp{background:#fff;border:2px solid var(--line);border-radius:18px;padding:12px;margin-bottom:14px}
+.date-grp .field{margin-bottom:10px}
+.date-grp .field:last-child{margin-bottom:0}
+.date-grp .input{padding:10px;font-size:14px;border-width:1.5px}
+.filled{animation:flash 1.2s ease}
+@keyframes flash{0%,40%{background:var(--butter)}100%{background:#fff}}
+.sheet-actions{display:flex;gap:8px;margin-top:6px}
+.sheet-actions .btn{flex:1;justify-content:center;padding:14px;font-size:15px}
+.del{display:block;margin:14px auto 0;color:var(--red);font-weight:700;font-size:14px}
+
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:11px 16px;border-radius:14px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:40;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+.foot{margin-top:28px;text-align:center;font-size:12px;color:var(--sub);line-height:1.7}
+.foot a{color:var(--sub)}
+.foot .fb{display:inline-block;margin-bottom:10px;font-size:14px;font-weight:700;color:var(--ink);background:#fff;border:2px solid var(--line);border-radius:12px;padding:9px 14px;text-decoration:none;box-shadow:2px 2px 0 var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo"><b>Pop<i>&amp;</i>Keep</b><span>팝앤킵</span></div>
+    <button class="icon-btn" id="shareBtn" aria-label="친구에게 공유">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B2F3A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>
+    </button>
+  </header>
+
+  <section class="hero">
+    <svg class="mascot" width="78" height="78" viewBox="0 0 80 80" aria-hidden="true">
+      <path d="M40 9c18 0 31 13 31 32 0 17-13 30-31 30S9 58 9 41C9 22 22 9 40 9z" fill="#FF8FB1" stroke="#3B2F3A" stroke-width="3"/>
+      <path d="M33 10c1-5 5-7 8-5" fill="none" stroke="#3B2F3A" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="30" cy="40" r="3.6" fill="#3B2F3A"/><circle cx="50" cy="40" r="3.6" fill="#3B2F3A"/>
+      <circle cx="31.2" cy="38.7" r="1.1" fill="#fff"/><circle cx="51.2" cy="38.7" r="1.1" fill="#fff"/>
+      <ellipse cx="23" cy="48" rx="5" ry="3" fill="#FF5C8A" opacity=".5"/><ellipse cx="57" cy="48" rx="5" ry="3" fill="#FF5C8A" opacity=".5"/>
+      <path d="M36 47q4 4 8 0" fill="none" stroke="#3B2F3A" stroke-width="2.6" stroke-linecap="round"/>
+      <rect x="52" y="54" width="22" height="15" rx="3" fill="#FFE08A" stroke="#3B2F3A" stroke-width="2.6" transform="rotate(-12 63 61)"/>
+      <path d="M58 60l9-2" stroke="#3B2F3A" stroke-width="2" stroke-linecap="round" transform="rotate(-12 63 61)"/>
+    </svg>
+    <div class="bubble" id="bubble">팝업 예약 마감, 이제 안 놓쳐요<small>인스타에서 본 팝업을 여기에 킵해 두세요</small></div>
+  </section>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <main class="list" id="list"></main>
+
+  <footer class="foot">
+    <a class="fb" id="fbLink" href="#" target="_blank" rel="noopener" hidden>💌 써 보고 한마디 남기기</a><br>
+    저장한 일정은 이 기기 브라우저에만 보관돼요.<br>
+    로그인 없이 쓰는 대신, 브라우저 데이터를 지우면 함께 사라져요.<br>
+    팝앤킵은 개인 사이드 프로젝트이며 특정 브랜드와 관계가 없어요.
+  </footer>
+</div>
+
+<button class="fab" id="addBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B2F3A" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>팝업 킵하기</button>
+
+<div class="dim" id="dim"></div>
+<form class="sheet" id="sheet" autocomplete="off" novalidate>
+  <div class="grab"></div>
+  <h2 id="sheetTitle">팝업 킵하기</h2>
+  <p class="lead">아는 것만 채워도 괜찮아요. 날짜는 나중에 넣어도 돼요.</p>
+
+  <div class="magic">
+    <div class="field" style="margin:0">
+      <label for="caption">인스타 글 내용 붙여 넣기 <em>날짜·장소를 찾아 드려요</em></label>
+      <textarea class="input" id="caption" placeholder="예) 겨울 팝업스토어 OPEN&#10;기간: 12.5 - 12.21&#10;사전예약: 11.25(화) 20시 오픈, 12.1 마감&#10;장소: 성수동 ○○"></textarea>
+    </div>
+    <button type="button" class="btn" id="parseBtn">✨ 날짜 찾기</button>
+    <div class="magic-msg" id="magicMsg" hidden></div>
+  </div>
+
+  <div class="field">
+    <label for="f-title">팝업 이름</label>
+    <input class="input" id="f-title" required placeholder="예) 시나모롤 겨울 팝업">
+  </div>
+  <div class="field">
+    <label>브랜드</label>
+    <div class="brands" id="brands"></div>
+  </div>
+  <div class="field">
+    <label for="f-link">인스타·예약 링크 <em>선택</em></label>
+    <input class="input" id="f-link" type="url" inputmode="url" placeholder="https://www.instagram.com/p/...">
+  </div>
+  <div class="field">
+    <label for="f-place">장소 <em>선택</em></label>
+    <input class="input" id="f-place" placeholder="예) 더현대 서울 B1">
+  </div>
+
+  <div class="date-grp">
+    <div class="row2">
+      <div class="field"><label for="d-rOpen">예약 오픈</label><input class="input" type="date" id="d-rOpen"></div>
+      <div class="field"><label for="d-rClose">예약 마감</label><input class="input" type="date" id="d-rClose"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="d-start">팝업 시작</label><input class="input" type="date" id="d-start"></div>
+      <div class="field"><label for="d-end">팝업 종료</label><input class="input" type="date" id="d-end"></div>
+    </div>
+    <div class="field"><label for="d-visit">내 방문 예정일</label><input class="input" type="date" id="d-visit"></div>
+  </div>
+
+  <div class="field">
+    <label for="f-memo">메모 <em>선택</em></label>
+    <textarea class="input" id="f-memo" placeholder="사고 싶은 굿즈, 1인 구매 제한, 같이 갈 사람…"></textarea>
+  </div>
+
+  <div class="sheet-actions">
+    <button type="button" class="btn" id="cancelBtn">닫기</button>
+    <button type="submit" class="btn pink">킵하기</button>
+  </div>
+  <button type="button" class="del" id="delBtn" hidden>이 팝업 삭제</button>
+</form>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ===== 설정 ===== */
+const FEEDBACK_URL = ''; // 구글 폼 등 피드백 링크를 넣으면 하단에 버튼이 생겨요
+
+const KEY = 'popnkeep.v1';
+const BRANDS = ['산리오','팝마트','디즈니','지브리','기타'];
+const DATE_FIELDS = [
+  ['rOpen','예약 오픈'],['rClose','예약 마감'],['start','팝업 시작'],['end','팝업 종료'],['visit','방문 예정']
+];
+const $ = s => document.querySelector(s);
+let items = load();
+let tab = 'upcoming';
+let editingId = null;
+
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || []; }catch(e){ return []; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(items)); }catch(e){ toast('저장하지 못했어요. 브라우저 설정을 확인해 주세요'); } }
+
+/* ===== 날짜 ===== */
+const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const parseD = s => { if(!s) return null; const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const diff = s => Math.round((parseD(s) - today()) / 864e5);
+const fmt = s => { const d = parseD(s); return `${d.getMonth()+1}.${d.getDate()} (${'일월화수목금토'[d.getDay()]})`; };
+const iso = (y,m,d) => `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+function status(it){
+  if(it.visited) return {kind:'done', label:'다녀왔어요', big:'✓'};
+  const dates = DATE_FIELDS.filter(([k]) => it.dates[k]).map(([k,l]) => ({k,l,n:diff(it.dates[k])}));
+  if(!dates.length) return {kind:'none', label:'날짜 미정', big:'?'};
+  const up = dates.filter(d => d.n >= 0).sort((a,b) => a.n - b.n);
+  const s = it.dates.start, e = it.dates.end;
+  const live = s && e && diff(s) <= 0 && diff(e) >= 0;
+  if(up.length){
+    const nx = up[0];
+    if(live && nx.k === 'end') return {kind:'live', label:'운영 중 · 종료까지', big: dLabel(nx.n), next:nx.k, n:nx.n};
+    return {kind: nx.n <= 3 ? 'hot' : 'up', label:nx.l, big:dLabel(nx.n), next:nx.k, n:nx.n};
+  }
+  return {kind:'past', label:'지난 팝업', big:'끝'};
+}
+const dLabel = n => n === 0 ? 'D-DAY' : `D-${n}`;
+
+/* ===== 그리기 ===== */
+function groups(){
+  const g = {upcoming:[], none:[], done:[]};
+  items.forEach(it => {
+    const st = status(it);
+    if(st.kind === 'done' || st.kind === 'past') g.done.push(it);
+    else if(st.kind === 'none') g.none.push(it);
+    else g.upcoming.push(it);
+  });
+  g.upcoming.sort((a,b) => status(a).n - status(b).n);
+  g.none.sort((a,b) => b.createdAt - a.createdAt);
+  g.done.sort((a,b) => b.createdAt - a.createdAt);
+  return g;
+}
+
+function render(){
+  const g = groups();
+  const T = [['upcoming','다가오는 일정'],['none','날짜 미정'],['done','다녀온·지난']];
+  $('#tabs').innerHTML = T.map(([k,l]) =>
+    `<button class="tab" role="tab" data-tab="${k}" aria-selected="${tab===k}">${l}<span class="n">${g[k].length}</span></button>`).join('');
+
+  const hot = g.upcoming.filter(it => status(it).n <= 3);
+  $('#bubble').innerHTML = hot.length
+    ? `<b style="color:var(--red)">${esc(hot[0].title)}</b> ${status(hot[0]).label} ${status(hot[0]).big}!<small>${hot.length > 1 ? `3일 안에 챙길 일정이 ${hot.length}개 있어요` : '잊지 말고 챙겨요'}</small>`
+    : items.length
+      ? `킵해 둔 팝업 ${items.length}개<small>가까운 일정부터 보여 드려요</small>`
+      : `팝업 예약 마감, 이제 안 놓쳐요<small>인스타에서 본 팝업을 여기에 킵해 두세요</small>`;
+
+  const list = g[tab];
+  if(!list.length){
+    const msg = {
+      upcoming: ['다가오는 일정이 없어요','인스타에서 본 팝업을 킵해 두면<br>예약 마감 D-day를 알려 드려요'],
+      none: ['날짜 미정인 팝업이 없어요','“오픈 예정”만 뜬 팝업도 일단 킵해 두세요'],
+      done: ['아직 다녀온 팝업이 없어요','다녀온 뒤 ‘다녀왔어요’를 누르면 여기 모여요']
+    }[tab];
+    $('#list').innerHTML = `<div class="empty">
+      <p>${msg[0]}<small>${msg[1]}</small></p>
+      ${!items.length ? '<button class="btn" id="sampleBtn">예시 하나 넣어 보기</button>' : ''}
+    </div>`;
+    return;
+  }
+  $('#list').innerHTML = list.map(card).join('');
+}
+
+function card(it){
+  const st = status(it);
+  const rows = DATE_FIELDS.filter(([k]) => it.dates[k]).map(([k,l]) => {
+    const cls = st.next === k ? 'next' : (diff(it.dates[k]) < 0 ? 'past' : '');
+    return `<div class="${cls}"><dt>${l}</dt><dd>${fmt(it.dates[k])}</dd></div>`;
+  }).join('');
+  const hasDate = DATE_FIELDS.some(([k]) => it.dates[k]);
+  return `<article class="card ${st.kind==='hot'?'urgent':''}" data-id="${it.id}">
+    <div class="card-top">
+      <div style="min-width:0">
+        <div class="chips"><span class="chip b-${esc(it.brand)}">${esc(it.brand)}</span></div>
+        <h3 class="title">${esc(it.title)}</h3>
+        ${it.place ? `<p class="place">📍 ${esc(it.place)}</p>` : ''}
+      </div>
+      <div class="dday ${st.kind}"><b>${st.big}</b><span>${st.label}</span></div>
+    </div>
+    ${rows ? `<dl class="dates">${rows}</dl>` : ''}
+    ${it.memo ? `<p class="memo">${esc(it.memo)}</p>` : ''}
+    <div class="actions">
+      ${it.link ? `<a class="btn" href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener">🔗 링크</a>` : ''}
+      ${hasDate && !it.visited ? `<button class="btn" data-act="ics">📅 캘린더에 넣기</button>` : ''}
+      ${it.visited
+        ? `<button class="btn" data-act="unvisit">되돌리기</button>`
+        : `<button class="btn mint" data-act="visit">다녀왔어요</button>`}
+      <button class="btn ghost" data-act="edit">수정</button>
+    </div>
+  </article>`;
+}
+
+/* ===== 폼 ===== */
+function openSheet(it){
+  editingId = it ? it.id : null;
+  $('#sheetTitle').textContent = it ? '팝업 수정' : '팝업 킵하기';
+  $('#delBtn').hidden = !it;
+  $('#caption').value = ''; $('#magicMsg').hidden = true;
+  $('#f-title').value = it ? it.title : '';
+  $('#f-link').value = it ? it.link : '';
+  $('#f-place').value = it ? it.place : '';
+  $('#f-memo').value = it ? it.memo : '';
+  DATE_FIELDS.forEach(([k]) => $('#d-'+k).value = it ? (it.dates[k] || '') : '');
+  $('#brands').innerHTML = BRANDS.map((b,i) =>
+    `<input type="radio" name="brand" id="br${i}" value="${b}" ${(it ? it.brand === b : i === 0) ? 'checked' : ''}><label for="br${i}">${b}</label>`).join('');
+  $('#dim').classList.add('on'); $('#sheet').classList.add('on');
+  $('#sheet').scrollTop = 0;
+}
+function closeSheet(){ $('#dim').classList.remove('on'); $('#sheet').classList.remove('on'); }
+
+$('#sheet').addEventListener('submit', e => {
+  e.preventDefault();
+  const title = $('#f-title').value.trim();
+  if(!title){ $('#f-title').focus(); toast('팝업 이름을 적어 주세요'); return; }
+  const data = {
+    title,
+    brand: (document.querySelector('input[name=brand]:checked') || {}).value || '기타',
+    link: $('#f-link').value.trim(),
+    place: $('#f-place').value.trim(),
+    memo: $('#f-memo').value.trim(),
+    dates: Object.fromEntries(DATE_FIELDS.map(([k]) => [k, $('#d-'+k).value || '']))
+  };
+  if(editingId){
+    Object.assign(items.find(i => i.id === editingId), data);
+    toast('수정했어요');
+  } else {
+    items.push({id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), visited:false, createdAt: Date.now(), ...data});
+    const st = status(items[items.length-1]);
+    tab = st.kind === 'none' ? 'none' : (st.kind === 'past' ? 'done' : 'upcoming');
+    toast(st.n !== undefined ? `킵했어요! ${st.label} ${st.big}` : '킵했어요!');
+  }
+  save(); closeSheet(); render();
+});
+
+$('#delBtn').addEventListener('click', () => {
+  if(!confirm('이 팝업을 삭제할까요?')) return;
+  items = items.filter(i => i.id !== editingId);
+  save(); closeSheet(); render(); toast('삭제했어요');
+});
+
+/* ===== 인스타 글에서 날짜 찾기 ===== */
+function guessYear(m){
+  const now = new Date(), cm = now.getMonth()+1;
+  return (m < cm - 2) ? now.getFullYear() + 1 : now.getFullYear();
+}
+function findDates(line){
+  const out = [];
+  const re = /(?:(20\d{2})\s*[.\-\/년]\s*)?(\d{1,2})\s*(?:[.\-\/]|월)\s*(\d{1,2})\s*일?/g;
+  let m;
+  while((m = re.exec(line))){
+    const mo = +m[2], d = +m[3];
+    if(mo < 1 || mo > 12 || d < 1 || d > 31) continue;
+    // 시간(20:00)이나 가격은 제외
+    const before = line[m.index - 1] || '', after = line[m.index + m[0].length] || '';
+    if(before === ':' || after === ':' || /[,원]/.test(after)) continue;
+    let y = m[1] ? +m[1] : guessYear(mo);
+    out.push(iso(y, mo, d));
+  }
+  // 범위인데 끝 날짜에 월이 없는 경우: 12.5 - 21
+  const r = line.match(/(\d{1,2})\s*[.\/월]\s*(\d{1,2})\s*일?\s*(?:\([^)]*\))?\s*[~\-–]\s*(\d{1,2})\s*일?(?![.\/월\d])/);
+  if(out.length === 1 && r){
+    const mo = +r[1]; out.push(iso(guessYear(mo), mo, +r[3]));
+  }
+  return out;
+}
+function parseCaption(text){
+  const res = {dates:{}, place:'', title:''};
+  const lines = text.split(/\n+/).map(s => s.trim()).filter(Boolean);
+  const loose = [];
+  lines.forEach(line => {
+    const ds = findDates(line);
+    const low = line.toLowerCase();
+    if(!res.place){
+      const pm = line.match(/(?:📍|장소|위치|place|location)\s*[:：]?\s*(.+)/i);
+      if(pm && !ds.length) res.place = pm[1].replace(/^[:：\s]+/,'').trim();
+    }
+    if(!ds.length) return;
+    const isReserve = /예약|사전|응모|래플|대기|reserv|booking|오픈런/i.test(line);
+    const isClose = /마감|종료|까지|close|deadline/i.test(line);
+    const isOpen = /오픈|open|시작|부터/i.test(low);
+    if(isReserve){
+      if(ds.length >= 2){ res.dates.rOpen ??= ds[0]; res.dates.rClose ??= ds[1]; }
+      else if(isClose) res.dates.rClose ??= ds[0];
+      else res.dates.rOpen ??= ds[0];
+    } else if(ds.length >= 2){
+      res.dates.start ??= ds[0]; res.dates.end ??= ds[1];
+    } else if(/기간|운영|일정|팝업|popup|store/i.test(line) || isOpen){
+      if(isClose && !isOpen) res.dates.end ??= ds[0]; else res.dates.start ??= ds[0];
+    } else loose.push(...ds);
+  });
+  if(!res.dates.start && loose.length){ res.dates.start = loose.shift(); }
+  if(!res.dates.end && loose.length){ res.dates.end = loose.shift(); }
+  const tm = text.match(/[\[【『「<]([^\]】』」>\n]{2,40})[\]】』」>]/);
+  if(tm) res.title = tm[1].trim();
+  else if(lines[0] && !findDates(lines[0]).length && lines[0].length <= 40) res.title = lines[0].replace(/[#@].*$/,'').trim();
+  return res;
+}
+$('#parseBtn').addEventListener('click', () => {
+  const text = $('#caption').value.trim();
+  const msg = $('#magicMsg'); msg.hidden = false;
+  if(!text){ msg.textContent = '인스타 글 내용을 먼저 붙여 넣어 주세요.'; return; }
+  const r = parseCaption(text);
+  const found = [];
+  DATE_FIELDS.forEach(([k,l]) => {
+    if(r.dates[k]){ const el = $('#d-'+k); el.value = r.dates[k]; el.classList.remove('filled'); void el.offsetWidth; el.classList.add('filled'); found.push(l); }
+  });
+  if(r.place && !$('#f-place').value){ $('#f-place').value = r.place; found.push('장소'); }
+  if(r.title && !$('#f-title').value){ $('#f-title').value = r.title; found.push('이름'); }
+  msg.innerHTML = found.length
+    ? `찾았어요: <b>${found.join(', ')}</b><br>틀린 곳이 있을 수 있으니 한 번만 확인해 주세요.`
+    : '날짜를 찾지 못했어요. 아래 칸에 직접 넣어 주세요.';
+});
+
+/* ===== 캘린더(.ics) ===== */
+function icsFor(it){
+  const stamp = new Date().toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+  const esc2 = s => (s || '').replace(/[\\;,]/g, m => '\\' + m).replace(/\n/g,'\\n');
+  const ev = DATE_FIELDS.filter(([k]) => it.dates[k] && diff(it.dates[k]) >= 0).map(([k,l]) => {
+    const d = it.dates[k].replace(/-/g,''); const nd = parseD(it.dates[k]); nd.setDate(nd.getDate()+1);
+    const d2 = iso(nd.getFullYear(), nd.getMonth()+1, nd.getDate()).replace(/-/g,'');
+    return ['BEGIN:VEVENT', `UID:${it.id}-${k}@popnkeep`, `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${d}`, `DTEND;VALUE=DATE:${d2}`,
+      `SUMMARY:${esc2(`[${l}] ${it.title}`)}`,
+      it.place ? `LOCATION:${esc2(it.place)}` : '',
+      `DESCRIPTION:${esc2([it.memo, it.link].filter(Boolean).join('\n'))}`,
+      'BEGIN:VALARM','ACTION:DISPLAY',`DESCRIPTION:${esc2(`내일 ${l}: ${it.title}`)}`,'TRIGGER:-PT15H','END:VALARM',
+      'END:VEVENT'].filter(Boolean).join('\r\n');
+  });
+  if(!ev.length) return null;
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//PopKeep//KO','CALSCALE:GREGORIAN', ...ev, 'END:VCALENDAR'].join('\r\n');
+}
+function downloadIcs(it){
+  const txt = icsFor(it);
+  if(!txt){ toast('앞으로 남은 날짜가 없어요'); return; }
+  const blob = new Blob([txt], {type:'text/calendar;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `popnkeep-${it.id}.ics`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('전날 오전 9시 알림이 함께 들어가요');
+}
+
+/* ===== 공통 ===== */
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function safeUrl(u){ return /^https?:\/\//i.test(u) ? u : 'https://' + u.replace(/^\/+/,''); }
+let tt; function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 2200); }
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tab]'); if(t){ tab = t.dataset.tab; render(); return; }
+  if(e.target.closest('#sampleBtn')){ addSample(); return; }
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const it = items.find(i => i.id === b.closest('.card').dataset.id);
+  const act = b.dataset.act;
+  if(act === 'edit') openSheet(it);
+  if(act === 'ics') downloadIcs(it);
+  if(act === 'visit'){ it.visited = true; save(); render(); toast('다녀왔군요! ‘다녀온·지난’에 모아 둘게요'); }
+  if(act === 'unvisit'){ it.visited = false; save(); render(); }
+});
+$('#addBtn').addEventListener('click', () => openSheet());
+$('#cancelBtn').addEventListener('click', closeSheet);
+$('#dim').addEventListener('click', closeSheet);
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeSheet(); });
+
+$('#shareBtn').addEventListener('click', async () => {
+  const data = {title:'팝앤킵 Pop&Keep', text:'인스타에서 본 팝업, 예약 마감까지 놓치지 않게', url: location.href.split('#')[0]};
+  try{
+    if(navigator.share){ await navigator.share(data); }
+    else { await navigator.clipboard.writeText(data.url); toast('링크를 복사했어요'); }
+  }catch(e){}
+});
+
+function addSample(){
+  const d = n => { const x = today(); x.setDate(x.getDate()+n); return iso(x.getFullYear(), x.getMonth()+1, x.getDate()); };
+  items.push({id:'sample', visited:false, createdAt:Date.now(), title:'(예시) 캐릭터 겨울 팝업스토어', brand:'기타', link:'', place:'성수동',
+    memo:'예시 카드예요. ‘수정’에서 지울 수 있어요.\n1인 구매 수량 제한 있음', dates:{rOpen:d(-1), rClose:d(2), start:d(9), end:d(23), visit:''}});
+  save(); render();
+}
+
+if(FEEDBACK_URL){ const f = $('#fbLink'); f.href = FEEDBACK_URL; f.hidden = false; }
+render();
+</script>
+</body>
+</html>
